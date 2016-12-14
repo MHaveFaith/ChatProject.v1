@@ -7,56 +7,70 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 /**
- * Created by Keno on 11/26/2016.
+ * Created by Keno on 12/14/2016.
  */
 public class ClientHandler extends Thread {
 
-    private static Socket clientSocket = null;
-    private static PrintWriter out = null;
-    private static BufferedReader in = null;
+    // Attributes
+    PrintWriter out;
+    BufferedReader in;
+    Socket socket;
 
+    // FIXME: 12/14/2016  ATM THE CLIENT DOESNT END WHEN THE SEVER CONNECTION CLOSES.
+    public ClientHandler(Socket socket, Client client) {
+        this.socket = socket;
 
-    public ClientHandler(Socket socket) {
-        clientSocket = socket;
     }
 
     public void sendToServer(String text) {
-        out.println(text);
+        try {
+            out.println(text);  // FIXME: 12/14/2016
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 
+
+    /**
+     * This is used for reading messages from the server..
+     *
+     */
     public void run() {
         try {
-            out = new PrintWriter(clientSocket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            out = new PrintWriter(socket.getOutputStream(), true);
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
             while (true) {
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException ee) {
-                    ee.printStackTrace();
+                while(!in.ready()) { // If the Buffered reader isn't active then sleep the thread....
+                    try {
+                        Thread.sleep(1);
+                    } catch (InterruptedException ee) {
+                        ee.printStackTrace();
+                    }
                 }
-
-                String line = in.readLine();
-                System.out.println(line);
+                String response = null;
+                response = in.readLine();
+                System.out.println(response); // FIXME: 12/14/2016  NEEDS TO SEND TO USERS SCREEN
             }
-
-        } catch (IOException ie) {
-            ie.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace(); // FIXME: 12/14/2016
             closeConnection();
         }
     }
 
-    /*
-     * Lazy so writing this once ..
+
+    /***
+     * Call this whenever connection needs to be closed
+     * or an exception is thrown.
      */
     public void closeConnection() {
         try {
+            socket.close();
             in.close();
             out.close();
-            clientSocket.close();
-
-        } catch (IOException iii) {
-            iii.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace(); // Fix me.
         }
     }
+
 }

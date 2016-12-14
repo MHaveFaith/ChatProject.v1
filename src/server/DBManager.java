@@ -94,7 +94,7 @@ public class DBManager {
             FileInputStream in = new FileInputStream("properties.prop");
             prop.load(in);
 
-            db_host = prop.getProperty("db_host"); //DB_HOst
+            db_host = prop.getProperty("db_host"); //DB_Host
             db_name = prop.getProperty("db_name"); //DB_Name
             db_pass = prop.getProperty("db_pass"); //DB_Pass
 
@@ -104,6 +104,7 @@ public class DBManager {
         } catch (SQLException se) {
             se.printStackTrace(); // FIXME: 12/12/2016
             System.out.println("Unable to connect to database");
+            displaySQLErrors(se);
             System.exit(1);
         } catch (IOException ie) {
             ie.printStackTrace(); // FIXME: 12/12/2016

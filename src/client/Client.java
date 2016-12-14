@@ -1,63 +1,68 @@
-package client; /**
- * Created by Keno on 11/26/2016.
+package client;
+
+/**
+ * Created by Keno on 12/13/2016.
  */
 
 import java.io.*;
 import java.net.*;
+import java.util.Properties;
 
-public class Client extends Thread {
-
-    private static final int DEFAULT_PORT = 1337;
-    private static final String DEFAULT_HOST = "localhost";
-    ClientHandler ch;
-    BufferedReader stdIn;
-    Socket clientSocket;
+public class Client {
+    ClientHandler client_handler;
+    Socket socket = null;
 
     public static void main(String[] args) {
-        new MultiChatClient();
-    }
-
-    public MultiChatClient() {
-        try {
-            clientSocket = new Socket(DEFAULT_HOST, DEFAULT_PORT);
-
-            // Creating object sending the socket and a reference of this object (class).
-            ch = new ClientHandler(clientSocket);
-            ch.start(); // Starting the thread.
-
-            /*
-             * Here I'm reading input from the user (messages) to pass to the server so that
-             * it can relay to all clients connected.
-             */
-            while (true) {
-                try {
-                    stdIn = new BufferedReader(new InputStreamReader(System.in));
-
-                    String input = stdIn.readLine();
-                    ch.sendToServer(input); // < Send to server
-
-                } catch (IOException iie) {
-                    stdIn.close();
-                    iie.printStackTrace();
-                }
-            }
-
-        } catch (IOException ie) {
-            ie.printStackTrace();
-            closeConnection(); // Close connection...
-        }
+        new Client();
 
     }
 
-    /*
-     * Lazy so writing this once ..
+    /**
+     * Loads the properties.prop file to get the host & port
+     * Creates a socket with the info then uses the Handlerv2 object to read from the server .
      */
-    public void closeConnection() {
+
+    // FIXME: 12/14/2016  ATM THE CLIENT DOESNT END WHEN THE SEVER CONNECTION CLOSES.
+    public Client() {
         try {
-            stdIn.close();
-            clientSocket.close();
-        } catch (IOException iii) {
-            iii.printStackTrace();
+            Properties prop = new Properties();
+            FileInputStream fin = new FileInputStream("properties.prop");
+            prop.load(fin);
+            String DEFAULT_HOST = prop.getProperty("default_host"); // HOST
+            int DEFAULT_PORT = Integer.parseInt(prop.getProperty("default_port"));  // PORT
+
+            socket = new Socket(DEFAULT_HOST, DEFAULT_PORT);
+            client_handler = new ClientHandler(socket, this); // Referencing this object - view constructor..
+            client_handler.start();
+
+            readUserInput(); // Method call.
+
+        } catch (UnknownHostException e) {
+            System.out.println(e);
+            client_handler.closeConnection();
+        } catch (IOException ex) {
+            System.out.println(ex);
+            client_handler.closeConnection();
+        }
+    }
+
+
+    /**
+     * This method is used for reading the user's input.
+     */
+    public void readUserInput() {
+        try {
+            BufferedReader in = new BufferedReader(new InputStreamReader(System.in)); // FIXME: 12/14/2016  change to getText()
+            String line = in.readLine(); // FIXME: 12/14/2016
+
+            while (line != null && !line.equals("Bye.")) {
+                client_handler.sendToServer(line); // Send Message to the server.
+                line = in.readLine(); // FIXME: 12/14/2016
+            }
+            client_handler.closeConnection();
+        } catch (IOException e) {
+            e.printStackTrace(); // FIXME: 12/14/2016
+            client_handler.closeConnection();
         }
     }
 }
