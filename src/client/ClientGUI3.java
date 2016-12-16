@@ -70,6 +70,7 @@ public class ClientGUI3 extends JFrame implements ActionListener
         label = new JLabel("Enter your username below", SwingConstants.CENTER);
         northPanel.add(label);
         tf = new JTextField("Anonymous");
+        tf.setFont(new Font("serif", Font.BOLD, 17));
         tf.setBackground(Color.WHITE);
         northPanel.add(tf);
         add(northPanel, BorderLayout.NORTH);
