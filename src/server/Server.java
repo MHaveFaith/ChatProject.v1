@@ -48,8 +48,8 @@ public class Server {
         try {
             clientSocket.close();
 
-        } catch (IOException iii) {
-            iii.printStackTrace();
+        } catch (IOException ee) {
+            ee.printStackTrace();
         }
     }
 }
